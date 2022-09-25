@@ -1,4 +1,6 @@
 import os
+import sys
+
 from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
@@ -30,6 +32,23 @@ CORS(app)
 '''
 
 
+@app.route("/drinks", methods=['GET'])
+def retrieve_drinks():
+    try:
+        error = False
+        short_drinks = [drink.short() for drink in Drink.query.all()]
+    except:
+        error = True
+        print(sys.exc_info())
+    if error:
+        abort(400)
+    else:
+        return jsonify({
+            'success': True,
+            'drinks': short_drinks,
+        })
+
+
 '''
 @TODO implement endpoint
     GET /drinks-detail
@@ -38,6 +57,24 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route("/drinks-detail", methods=['GET'])
+@requires_auth('get:drinks-detail')
+def retrieve_drinks_details(jwt):
+    try:
+        error = False
+        long_drinks = [drink.long() for drink in Drink.query.all()]
+    except:
+        error = True
+        print(sys.exc_info())
+    if error:
+        abort(400)
+    else:
+        return jsonify({
+            'success': True,
+            'drinks': long_drinks,
+        })
 
 
 '''
@@ -49,7 +86,6 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
-
 
 '''
 @TODO implement endpoint
@@ -63,7 +99,6 @@ CORS(app)
         or appropriate status code indicating reason for failure
 '''
 
-
 '''
 @TODO implement endpoint
     DELETE /drinks/<id>
@@ -74,7 +109,6 @@ CORS(app)
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
-
 
 # Error Handling
 '''
@@ -106,7 +140,6 @@ def unprocessable(error):
 @TODO implement error handler for 404
     error handler should conform to general task above
 '''
-
 
 '''
 @TODO implement error handler for AuthError
